@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Estimator">
+<meta name="theme-color" content="#1a1a2e">
+<title>Reno Estimator</title>
+<link rel="manifest" id="pwa-manifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0f0f14;
+  --ink2: #1e1e2e;
+  --ink3: #2a2a3e;
+  --surface: #f7f6f2;
+  --surface2: #eeecea;
+  --surface3: #e4e1dc;
+  --accent: #e85c2f;
+  --accent2: #f0a500;
+  --green: #1a7a5e;
+  --green-light: #d4ede6;
+  --text: #0f0f14;
+  --text2: #4a4a5e;
+  --text3: #8a8a9e;
+  --border: #dddbd6;
+  --r: 12px;
+  --rsm: 8px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--ink);font-family:'Syne',sans-serif;color:var(--text)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* App shell */
+.app{display:flex;flex-direction:column;height:100dvh;background:var(--surface)}
+.topbar{background:var(--ink);padding:calc(var(--safe-top) + 12px) 16px 12px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.topbar-title{font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.5px}
+.topbar-sub{font-size:11px;color:#ffffff66;font-weight:400;margin-top:1px}
+.topbar-right{display:flex;gap:8px;align-items:center}
+.icon-btn{width:36px;height:36px;border-radius:var(--rsm);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#ffffff18;color:#fff}
+.icon-btn:active{opacity:0.7}
+.icon-btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none}
+
+.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.tab-bar{background:var(--ink2);border-top:1px solid #ffffff12;padding:6px 0 calc(6px + var(--safe-bottom));flex-shrink:0;display:flex}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;cursor:pointer;padding:6px 2px;color:#ffffff44;font-family:'Syne',sans-serif;font-size:10px;font-weight:600;background:none;letter-spacing:0.3px;transition:color 0.15s}
+.tab.active{color:var(--accent)}
+.tab svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.8;fill:none}
+
+/* Pages */
+.page{display:none;padding:16px}
+.page.active{display:block}
+
+/* Section headers */
+.section-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;margin-top:20px}
+.section-label:first-child{margin-top:0}
+
+/* Cards */
+.card{background:#fff;border-radius:var(--r);border:1px solid var(--border);margin-bottom:10px;overflow:hidden}
+.card-pad{padding:14px 16px}
+
+/* Stat strip */
+.stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:10px}
+.stat{background:#fff;padding:14px 12px}
+.stat-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+.stat-val{font-size:20px;font-weight:800;letter-spacing:-0.5px}
+.stat-val.accent{color:var(--accent)}
+.stat-val.green{color:var(--green)}
+
+/* Job cards on home */
+.job-card{background:#fff;border-radius:var(--r);border:1px solid var(--border);margin-bottom:8px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background 0.1s}
+.job-card:active{background:var(--surface2)}
+.job-card-icon{width:44px;height:44px;border-radius:var(--rsm);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.job-card-body{flex:1;min-width:0}
+.job-card-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.job-card-meta{font-size:12px;color:var(--text3);margin-top:2px}
+.job-card-right{text-align:right;flex-shrink:0}
+.job-card-total{font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--green)}
+.job-card-rooms{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* Badges */
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase}
+.badge-quick{background:#fff3e0;color:#e65100}
+.badge-detailed{background:#e8f5e9;color:#1b5e20}
+
+/* Forms */
+label{display:block;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+input[type=text],input[type=number],input[type=date],input[type=email],input[type=tel],select,textarea{
+  width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:var(--rsm);
+  font-family:'Syne',sans-serif;font-size:15px;color:var(--text);background:var(--surface);
+  outline:none;-webkit-appearance:none;appearance:none;transition:border-color 0.15s
+}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);background:#fff}
+textarea{resize:vertical;min-height:64px;line-height:1.5}
+.field{margin-bottom:12px}
+.field:last-child{margin-bottom:0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.pfx-wrap{position:relative}
+.pfx-wrap .pfx{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none;font-family:'JetBrains Mono',monospace}
+.pfx-wrap input{padding-left:26px}
+
+/* Buttons */
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 18px;border-radius:var(--rsm);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;border:none;cursor:pointer;width:100%;letter-spacing:0.2px;transition:opacity 0.15s,transform 0.1s}
+.btn:active{transform:scale(0.98);opacity:0.85}
+.btn svg{width:17px;height:17px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
+.btn-accent{background:var(--accent);color:#fff;margin-bottom:8px}
+.btn-dark{background:var(--ink);color:#fff;margin-bottom:8px}
+.btn-ghost{background:#fff;color:var(--text);border:1.5px solid var(--border);margin-bottom:8px}
+.btn-danger{background:#fff0ee;color:#c0392b;border:1.5px solid #ffd5d0;margin-bottom:8px}
+.btn-sm{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:var(--rsm);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;border:1.5px solid var(--border);background:#fff;color:var(--text2);cursor:pointer;letter-spacing:0.2px}
+.btn-sm:active{opacity:0.7}
+.btn-sm svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none}
+.btn-sm.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+
+/* Mode toggle */
+.mode-toggle{display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--surface2);border-radius:var(--rsm);padding:3px;margin-bottom:16px;border:1px solid var(--border)}
+.mode-btn{padding:9px;border:none;border-radius:6px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:none;color:var(--text3);transition:all 0.15s}
+.mode-btn.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.12)}
+
+/* Room tabs */
+.room-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:14px;scrollbar-width:none}
+.room-tabs::-webkit-scrollbar{display:none}
+.room-tab{flex-shrink:0;padding:7px 14px;border-radius:20px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;border:1.5px solid var(--border);background:#fff;color:var(--text3);cursor:pointer;white-space:nowrap;letter-spacing:0.2px}
+.room-tab.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.room-tab.add-room{border-style:dashed;color:var(--accent);border-color:var(--accent)}
+
+/* Line items */
+.line-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--rsm);padding:11px;margin-bottom:8px}
+.li-top{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px;align-items:start}
+.li-bot{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+.li-total{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--green);padding-bottom:10px;white-space:nowrap}
+.del-btn{width:32px;height:32px;border-radius:var(--rsm);border:none;cursor:pointer;background:#fff0ee;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.del-btn:active{opacity:0.7}
+.del-btn svg{width:14px;height:14px;stroke:#c0392b;stroke-width:2.5;fill:none}
+.add-line-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;width:100%;background:none;border:1.5px dashed var(--border);border-radius:var(--rsm);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text3);cursor:pointer;margin-top:4px;letter-spacing:0.3px}
+.add-line-btn:active{background:var(--surface2)}
+
+/* Quick estimate sliders */
+.quick-category{background:#fff;border-radius:var(--r);border:1px solid var(--border);margin-bottom:8px;overflow:hidden}
+.qc-header{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:#fff}
+.qc-header:active{background:var(--surface)}
+.qc-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.qc-icon{font-size:18px}
+.qc-total{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--green)}
+.qc-body{padding:4px 14px 14px;display:none}
+.qc-body.open{display:block}
+.quick-item{margin-bottom:12px}
+.quick-item:last-child{margin-bottom:0}
+.qi-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.qi-label{font-size:13px;font-weight:600}
+.qi-val{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--green)}
+input[type=range]{-webkit-appearance:none;width:100%;height:5px;background:var(--surface3);border-radius:3px;outline:none;border:none;padding:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--ink);cursor:pointer;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+
+/* Room summary */
+.room-summary{background:var(--ink);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;color:#fff}
+.rs-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#ffffff66;margin-bottom:4px}
+.rs-total{font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-1px}
+.rs-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.rs-item{background:#ffffff12;border-radius:var(--rsm);padding:8px 10px}
+.rs-item-label{font-size:10px;color:#ffffff66;font-weight:600;margin-bottom:2px}
+.rs-item-val{font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* Total bar */
+.total-bar{background:var(--ink);padding:14px 16px;margin-bottom:10px;border-radius:var(--r)}
+.total-bar-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#ffffff66;margin-bottom:2px}
+.total-bar-val{font-size:24px;font-weight:800;font-family:'JetBrains Mono',monospace;color:#fff;letter-spacing:-0.5px}
+.total-breakdown{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.tb-row{display:flex;justify-content:space-between;font-size:12px;color:#ffffff99}
+.tb-row.bold{color:#fff;font-weight:700;font-size:13px;padding-top:6px;border-top:1px solid #ffffff22;margin-top:2px}
+.tb-row span:last-child{font-family:'JetBrains Mono',monospace}
+
+/* Slider row */
+.slider-row{display:flex;align-items:center;gap:10px;padding:4px 0}
+.slider-row label{margin:0;white-space:nowrap;min-width:90px}
+.slider-val{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent);min-width:40px;text-align:right}
+
+/* Photos */
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+.photo-thumb{aspect-ratio:1;border-radius:var(--rsm);overflow:hidden;position:relative;background:var(--surface2);cursor:pointer}
+.photo-thumb img{width:100%;height:100%;object-fit:cover}
+.photo-thumb .photo-note{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.6);color:#fff;font-size:9px;padding:3px 5px;line-height:1.3;font-weight:600}
+.photo-thumb .photo-del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.7);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.photo-thumb .photo-del svg{width:10px;height:10px;stroke:#fff;stroke-width:3;fill:none}
+.photo-add{aspect-ratio:1;border-radius:var(--rsm);border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;background:none;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.3px}
+.photo-add:active{background:var(--surface2)}
+.photo-add svg{width:22px;height:22px;stroke:currentColor;stroke-width:1.5;fill:none}
+
+/* Dim info chip */
+.dim-chip{display:inline-flex;gap:12px;background:var(--ink2);color:#fff;border-radius:var(--rsm);padding:8px 12px;font-size:12px;font-weight:700;margin-top:8px;font-family:'JetBrains Mono',monospace}
+.dim-chip span{color:#ffffff88;font-weight:400;font-family:'Syne',sans-serif;font-size:11px;margin-right:2px}
+
+/* Empty state */
+.empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty p{font-size:14px;font-weight:600;margin-bottom:4px;color:var(--text2)}
+.empty small{font-size:12px}
+
+/* Divider */
+.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
+
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:flex-end}
+.overlay.open{display:flex}
+.sheet{background:var(--surface);border-radius:var(--r) var(--r) 0 0;width:100%;max-height:88vh;overflow-y:auto;padding:16px 16px calc(16px + var(--safe-bottom))}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.sheet-title{font-size:18px;font-weight:800;margin-bottom:4px;letter-spacing:-0.3px}
+.sheet-sub{font-size:13px;color:var(--text3);margin-bottom:16px}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+.detail-row:last-child{border-bottom:none}
+.detail-row .dl{color:var(--text3);font-size:13px}
+.detail-row .dr{font-weight:600}
+
+/* Photo note modal */
+.photo-note-input{width:100%;padding:12px;border:1.5px solid var(--border);border-radius:var(--rsm);font-family:'Syne',sans-serif;font-size:15px;background:var(--surface);resize:none;min-height:80px}
+
+/* Rate library chips */
+.rate-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);font-size:12px;font-weight:700;cursor:pointer;margin:0 6px 6px 0;white-space:nowrap}
+.rate-chip:active{background:var(--surface3)}
+.rate-chip .rc-price{font-family:'JetBrains Mono',monospace;color:var(--green)}
+
+/* Saved flash */
+.saved-flash{position:fixed;top:calc(var(--safe-top) + 60px);left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:300;pointer-events:none;opacity:0;transition:opacity 0.3s}
+.saved-flash.show{opacity:1}
+
+/* Settings */
+.settings-group{margin-bottom:20px}
+.settings-group h3{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">Reno Estimator</div>
+      <div class="topbar-sub" id="topbar-sub">Brisbane Bathroom Renovations</div>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" onclick="showNewJobSheet()" id="new-job-btn" title="New estimate">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="main-content">
+
+    <!-- HOME -->
+    <div class="page active" id="page-home">
+      <div class="section-label">Overview</div>
+      <div class="stat-strip">
+        <div class="stat"><div class="stat-label">Jobs</div><div class="stat-val" id="s-total">0</div></div>
+        <div class="stat"><div class="stat-label">Rooms</div><div class="stat-val accent" id="s-rooms">0</div></div>
+        <div class="stat"><div class="stat-label">Pipeline</div><div class="stat-val green mono" id="s-pipeline">$0</div></div>
+      </div>
+      <div class="section-label">Recent estimates</div>
+      <div id="home-jobs">
+        <div class="empty"><div class="empty-icon">📋</div><p>No estimates yet</p><small>Tap + to start your first one</small></div>
+      </div>
+    </div>
+
+    <!-- ESTIMATE -->
+    <div class="page" id="page-estimate">
+      <!-- Job info bar -->
+      <div class="card card-pad" style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:16px;font-weight:800" id="est-client-name">Client name</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px" id="est-address">Address</div>
+          </div>
+          <div class="btn-row" style="margin:0">
+            <button class="btn-sm accent" onclick="showNewRoomSheet()">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Room
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Room tabs -->
+      <div class="room-tabs" id="room-tabs"></div>
+
+      <!-- Room content -->
+      <div id="room-content">
+        <div class="empty"><div class="empty-icon">🛁</div><p>No rooms added yet</p><small>Tap "+ Room" to add a bathroom</small></div>
+      </div>
+    </div>
+
+    <!-- RATES -->
+    <div class="page" id="page-rates">
+      <div class="section-label">Labour rates</div>
+      <div class="card card-pad">
+        <div id="labour-rates-list"></div>
+        <button class="add-line-btn" onclick="addRate('labour','New trade','hr',120)">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 5v14M5 12h14"/></svg> ADD TRADE
+        </button>
+      </div>
+      <div class="section-label">Material rates</div>
+      <div class="card card-pad">
+        <div id="material-rates-list"></div>
+        <button class="add-line-btn" onclick="addRate('material','New material','m²',90)">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 5v14M5 12h14"/></svg> ADD MATERIAL
+        </button>
+      </div>
+      <div class="section-label">Quick estimate presets</div>
+      <div class="card card-pad">
+        <div id="quick-rates-list"></div>
+        <button class="add-line-btn" onclick="addQuickRate('New item',0,5000)">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 5v14M5 12h14"/></svg> ADD PRESET
+        </button>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="settings-group">
+        <h3>Company details</h3>
+        <div class="card card-pad">
+          <div class="field"><label>Company name</label><input type="text" id="co-name" placeholder="Your Bathroom Renovations Pty Ltd"></div>
+          <div class="field"><label>ABN</label><input type="text" id="co-abn" placeholder="12 345 678 901"></div>
+          <div class="row2">
+            <div class="field"><label>Phone</label><input type="tel" id="co-phone" placeholder="07 xxxx xxxx"></div>
+            <div class="field"><label>Email</label><input type="email" id="co-email" placeholder="info@yourbiz.com.au"></div>
+          </div>
+          <div class="field"><label>Address</label><input type="text" id="co-address" placeholder="Brisbane QLD 4000"></div>
+          <div class="field"><label>QBCC Licence</label><input type="text" id="co-lic" placeholder="1234567"></div>
+          <div class="field"><label>Default GST rate</label>
+            <select id="co-gst"><option value="10">10% (standard)</option><option value="0">0% (GST free)</option></select>
+          </div>
+          <div class="field"><label>Default contingency %</label><input type="number" id="co-cont" value="10" min="0" max="50"></div>
+        </div>
+      </div>
+      <button class="btn btn-dark" onclick="saveSettings()">
+        <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> Save settings
+      </button>
+      <button class="btn btn-danger" onclick="clearAllData()">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg> Clear all data
+      </button>
+    </div>
+
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <button class="tab active" id="tab-home" onclick="navTo('home')">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </button>
+    <button class="tab" id="tab-estimate" onclick="navTo('estimate')">
+      <svg viewBox="0 0 24 24"><path d="M9 7h6m0 10v-3m-3 3v-6m-2 6v-1M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg>
+      Estimate
+    </button>
+    <button class="tab" id="tab-rates" onclick="navTo('rates')">
+      <svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      Rates
+    </button>
+    <button class="tab" id="tab-settings" onclick="navTo('settings')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </button>
+  </div>
+</div>
+
+<!-- NEW JOB SHEET -->
+<div class="overlay" id="overlay-newjob" onclick="closeOverlay('overlay-newjob',event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">New estimate</div>
+    <div class="sheet-sub">Client & job details</div>
+    <div class="field"><label>Client name *</label><input type="text" id="nj-client" placeholder="e.g. Sarah Johnson"></div>
+    <div class="row2">
+      <div class="field"><label>Phone</label><input type="tel" id="nj-phone" placeholder="04xx xxx xxx"></div>
+      <div class="field"><label>Email</label><input type="email" id="nj-email" placeholder="client@email.com"></div>
+    </div>
+    <div class="field"><label>Job address</label><input type="text" id="nj-address" placeholder="123 Street, Brisbane QLD"></div>
+    <div class="field"><label>Date</label><input type="date" id="nj-date"></div>
+    <div class="field"><label>Notes</label><textarea id="nj-notes" placeholder="Any initial notes about the job..."></textarea></div>
+    <button class="btn btn-accent" onclick="createJob()">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Create estimate
+    </button>
+    <button class="btn btn-ghost" onclick="closeOverlay('overlay-newjob')">Cancel</button>
+  </div>
+</div>
+
+<!-- NEW ROOM SHEET -->
+<div class="overlay" id="overlay-newroom" onclick="closeOverlay('overlay-newroom',event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Add room</div>
+    <div class="sheet-sub">Choose the type of space</div>
+    <div class="field"><label>Room name</label><input type="text" id="nr-name" placeholder="e.g. Main bathroom"></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px" id="room-type-grid">
+      <button class="room-type-btn" onclick="selectRoomType('🛁','Main Bath',this)" style="padding:12px 8px;border:1.5px solid var(--border);border-radius:var(--rsm);background:#fff;cursor:pointer;font-size:11px;font-weight:700;text-align:center;font-family:'Syne',sans-serif">🛁<br>Main Bath</button>
+      <button class="room-type-btn" onclick="selectRoomType('🚿','Ensuite',this)" style="padding:12px 8px;border:1.5px solid var(--border);border-radius:var(--rsm);background:#fff;cursor:pointer;font-size:11px;font-weight:700;text-align:center;font-family:'Syne',sans-serif">🚿<br>Ensuite</button>
+      <button class="room-type-btn" onclick="selectRoomType('🪠','Powder Room',this)" style="padding:12px 8px;border:1.5px solid var(--border);border-radius:var(--rsm);background:#fff;cursor:pointer;font-size:11px;font-weight:700;text-align:center;font-family:'Syne',sans-serif">🪠<br>Powder Room</button>
+      <button class="room-type-btn" onclick="selectRoomType('🛀','Laundry',this)" style="padding:12px 8px;border:1.5px solid var(--border);border-radius:var(--rsm);background:#fff;cursor:pointer;font-size:11px;font-weight:700;text-align:center;font-family:'Syne',sans-serif">🛀<br>Laundry</button>
+      <button class="room-type-btn" onclick="selectRoomType('🏠','Other',this)" style="padding:12px 8px;border:1.5px solid var(--border);border-radius:var(--rsm);background:#fff;cursor:pointer;font-size:11px;font-weight:700;text-align:center;font-family:'Syne',sans-serif">🏠<br>Other</button>
+    </div>
+    <div class="row3">
+      <div class="field"><label>Length (m)</label><input type="number" id="nr-L" value="2.5" step="0.1" min="0"></div>
+      <div class="field"><label>Width (m)</label><input type="number" id="nr-W" value="1.8" step="0.1" min="0"></div>
+      <div class="field"><label>Height (m)</label><input type="number" id="nr-H" value="2.4" step="0.1" min="0"></div>
+    </div>
+    <button class="btn btn-accent" onclick="createRoom()">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add room
+    </button>
+    <button class="btn btn-ghost" onclick="closeOverlay('overlay-newroom')">Cancel</button>
+  </div>
+</div>
+
+<!-- JOB DETAIL SHEET -->
+<div class="overlay" id="overlay-jobdetail" onclick="closeOverlay('overlay-jobdetail',event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div id="jobdetail-content"></div>
+  </div>
+</div>
+
+<!-- PHOTO NOTE SHEET -->
+<div class="overlay" id="overlay-photonote" onclick="closeOverlay('overlay-photonote',event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Photo note</div>
+    <div class="sheet-sub">Add a note to this photo</div>
+    <textarea class="photo-note-input" id="photo-note-input" placeholder="e.g. Cracked tiles behind shower, mould in grout..."></textarea>
+    <button class="btn btn-dark" style="margin-top:12px" onclick="savePhotoNote()">Save note</button>
+    <button class="btn btn-ghost" onclick="closeOverlay('overlay-photonote')">Cancel</button>
+  </div>
+</div>
+
+<div class="saved-flash" id="saved-flash">Saved ✓</div>
+<input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" multiple onchange="handlePhotos(event)">
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let jobs = [];
+let activeJobId = null;
+let activeRoomId = null;
+let pendingPhotoRoomId = null;
+let pendingPhotoNoteIdx = null;
+let selectedRoomEmoji = '🛁';
+
+let labourRates = [
+  {name:'Plumber',unit:'hr',rate:125},
+  {name:'Tiler',unit:'hr',rate:95},
+  {name:'Electrician',unit:'hr',rate:115},
+  {name:'Builder / Carpenter',unit:'hr',rate:95},
+  {name:'Waterproofer',unit:'hr',rate:90},
+];
+let materialRates = [
+  {name:'Floor tiles (supply & lay)',unit:'m²',rate:95},
+  {name:'Wall tiles (supply & lay)',unit:'m²',rate:85},
+  {name:'Waterproofing membrane',unit:'m²',rate:45},
+  {name:'Cement sheet',unit:'m²',rate:35},
+];
+let quickRates = [
+  {name:'Toilet suite',min:400,max:1200},
+  {name:'Vanity unit',min:600,max:2500},
+  {name:'Shower screen',min:500,max:1800},
+  {name:'Tapware set',min:300,max:1500},
+  {name:'Exhaust fan',min:150,max:400},
+  {name:'Demo & disposal',min:400,max:1500},
+];
+let company = {name:'',abn:'',phone:'',email:'',address:'',lic:'',gst:10,cont:10};
+
+// ─── PERSISTENCE ─────────────────────────────────────────────────────────────
+function persist() {
+  try {
+    localStorage.setItem('re_jobs', JSON.stringify(jobs));
+    localStorage.setItem('re_labour', JSON.stringify(labourRates));
+    localStorage.setItem('re_material', JSON.stringify(materialRates));
+    localStorage.setItem('re_quick', JSON.stringify(quickRates));
+    localStorage.setItem('re_company', JSON.stringify(company));
+  } catch(e){}
+}
+function hydrate() {
+  try {
+    const j=localStorage.getItem('re_jobs'); if(j) jobs=JSON.parse(j);
+    const l=localStorage.getItem('re_labour'); if(l) labourRates=JSON.parse(l);
+    const m=localStorage.getItem('re_material'); if(m) materialRates=JSON.parse(m);
+    const q=localStorage.getItem('re_quick'); if(q) quickRates=JSON.parse(q);
+    const c=localStorage.getItem('re_company'); if(c) company=JSON.parse(c);
+  } catch(e){}
+}
+
+// ─── NAV ──────────────────────────────────────────────────────────────────────
+function navTo(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('tab-'+page).classList.add('active');
+  document.getElementById('main-content').scrollTop=0;
+  if(page==='home') renderHome();
+  if(page==='estimate') renderEstimate();
+  if(page==='rates') renderRates();
+  if(page==='settings') loadSettings();
+  document.getElementById('new-job-btn').style.display = page==='home'||page==='estimate' ? 'flex' : 'none';
+  if(page==='estimate' && activeJobId) {
+    document.getElementById('topbar-title').textContent = getJob().client||'Estimate';
+    document.getElementById('topbar-sub').textContent = getJob().address||'';
+  } else {
+    document.getElementById('topbar-title').textContent = 'Reno Estimator';
+    document.getElementById('topbar-sub').textContent = company.name||'Brisbane Bathroom Renovations';
+  }
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function fmt(n){ return '$'+Math.round(n).toLocaleString('en-AU'); }
+function uid(){ return Date.now()+Math.random().toString(36).slice(2); }
+function getJob(id){ return jobs.find(j=>j.id===(id||activeJobId)); }
+function flash(msg='Saved ✓'){
+  const el=document.getElementById('saved-flash');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2000);
+}
+
+function roomTotal(room) {
+  let t=0;
+  if(room.mode==='quick') {
+    quickRates.forEach((qr,i)=>{ if(room.quick&&room.quick[i]!=null) t+=room.quick[i]; });
+  } else {
+    (room.lines||[]).forEach(l=>t+=l.qty*l.rate);
+  }
+  return t;
+}
+function jobTotal(job) {
+  const sub=(job.rooms||[]).reduce((s,r)=>s+roomTotal(r),0);
+  const cont=sub*(company.cont||10)/100;
+  const gst=(sub+cont)*(company.gst||10)/100;
+  return {sub,cont,gst,total:sub+cont+gst};
+}
+
+// ─── OVERLAYS ────────────────────────────────────────────────────────────────
+function closeOverlay(id,e) {
+  if(!e||e.target===document.getElementById(id))
+    document.getElementById(id).classList.remove('open');
+}
+function showNewJobSheet() {
+  document.getElementById('nj-client').value='';
+  document.getElementById('nj-phone').value='';
+  document.getElementById('nj-email').value='';
+  document.getElementById('nj-address').value='';
+  document.getElementById('nj-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('nj-notes').value='';
+  document.getElementById('overlay-newjob').classList.add('open');
+  setTimeout(()=>document.getElementById('nj-client').focus(),300);
+}
+function showNewRoomSheet() {
+  document.getElementById('nr-name').value='';
+  document.getElementById('nr-L').value='2.5';
+  document.getElementById('nr-W').value='1.8';
+  document.getElementById('nr-H').value='2.4';
+  selectedRoomEmoji='🛁';
+  document.querySelectorAll('.room-type-btn').forEach(b=>b.style.background='#fff');
+  document.getElementById('overlay-newroom').classList.add('open');
+}
+function selectRoomType(emoji,name,btn) {
+  selectedRoomEmoji=emoji;
+  document.querySelectorAll('.room-type-btn').forEach(b=>b.style.background='#fff');
+  btn.style.background='var(--ink)'; btn.style.color='#fff';
+  if(!document.getElementById('nr-name').value) document.getElementById('nr-name').value=name;
+}
+
+// ─── JOBS ─────────────────────────────────────────────────────────────────────
+function createJob() {
+  const client=document.getElementById('nj-client').value.trim();
+  if(!client){ alert('Please enter a client name'); return; }
+  const job={
+    id:uid(), client, phone:document.getElementById('nj-phone').value,
+    email:document.getElementById('nj-email').value, address:document.getElementById('nj-address').value,
+    date:document.getElementById('nj-date').value||new Date().toISOString().slice(0,10),
+    notes:document.getElementById('nj-notes').value, rooms:[]
+  };
+  jobs.unshift(job);
+  activeJobId=job.id; activeRoomId=null;
+  persist(); flash('Estimate created');
+  closeOverlay('overlay-newjob');
+  navTo('estimate');
+}
+
+function openJob(id) {
+  activeJobId=id; activeRoomId=null;
+  const job=getJob(id);
+  if(job&&job.rooms.length) activeRoomId=job.rooms[0].id;
+  closeOverlay('overlay-jobdetail');
+  navTo('estimate');
+}
+
+function showJobDetail(id) {
+  const job=getJob(id); if(!job) return;
+  const t=jobTotal(job);
+  document.getElementById('jobdetail-content').innerHTML=`
+    <div class="sheet-title">${job.client}</div>
+    <div class="sheet-sub">${job.address||'No address'}</div>
+    <div class="detail-row"><span class="dl">Date</span><span class="dr">${job.date}</span></div>
+    <div class="detail-row"><span class="dl">Phone</span><span class="dr">${job.phone||'—'}</span></div>
+    <div class="detail-row"><span class="dl">Email</span><span class="dr" style="font-size:12px">${job.email||'—'}</span></div>
+    <div class="detail-row"><span class="dl">Rooms</span><span class="dr">${job.rooms.length}</span></div>
+    <div class="detail-row"><span class="dl">Subtotal</span><span class="dr mono">${fmt(t.sub)}</span></div>
+    <div class="detail-row"><span class="dl">Contingency (${company.cont||10}%)</span><span class="dr mono">${fmt(t.cont)}</span></div>
+    <div class="detail-row"><span class="dl">GST (${company.gst||10}%)</span><span class="dr mono">${fmt(t.gst)}</span></div>
+    <div class="detail-row" style="padding-top:12px"><span class="dl" style="font-size:15px;font-weight:800;color:var(--text)">TOTAL</span><span class="dr mono" style="font-size:18px;color:var(--green)">${fmt(t.total)}</span></div>
+    ${job.notes?`<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:var(--rsm);font-size:13px;color:var(--text2)">${job.notes}</div>`:''}
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-sm accent" onclick="openJob('${job.id}')">Open estimate</button>
+      <button class="btn-sm" style="color:#c0392b;border-color:#ffd5d0" onclick="deleteJob('${job.id}')">Delete</button>
+    </div>`;
+  document.getElementById('overlay-jobdetail').classList.add('open');
+}
+
+function deleteJob(id) {
+  if(!confirm('Delete this estimate?')) return;
+  jobs=jobs.filter(j=>j.id!==id);
+  persist(); flash('Deleted');
+  closeOverlay('overlay-jobdetail');
+  if(activeJobId===id){ activeJobId=null; navTo('home'); } else renderHome();
+}
+
+// ─── ROOMS ───────────────────────────────────────────────────────────────────
+function createRoom() {
+  const name=document.getElementById('nr-name').value.trim()||'Room';
+  const L=parseFloat(document.getElementById('nr-L').value)||2.5;
+  const W=parseFloat(document.getElementById('nr-W').value)||1.8;
+  const H=parseFloat(document.getElementById('nr-H').value)||2.4;
+  const room={id:uid(),name,emoji:selectedRoomEmoji,L,W,H,mode:'quick',lines:[],quick:quickRates.map(()=>null),photos:[]};
+  const job=getJob(); if(!job) return;
+  job.rooms.push(room); activeRoomId=room.id;
+  persist(); flash('Room added');
+  closeOverlay('overlay-newroom');
+  renderEstimate();
+}
+
+function deleteRoom(roomId) {
+  if(!confirm('Remove this room?')) return;
+  const job=getJob(); if(!job) return;
+  job.rooms=job.rooms.filter(r=>r.id!==roomId);
+  activeRoomId=job.rooms.length?job.rooms[0].id:null;
+  persist(); renderEstimate();
+}
+
+function getRoom(roomId){ const job=getJob(); return job&&job.rooms.find(r=>r.id===(roomId||activeRoomId)); }
+
+function setMode(roomId,mode) {
+  const r=getRoom(roomId); if(!r) return;
+  r.mode=mode; persist(); renderRoomContent(roomId);
+}
+
+// ─── RENDER HOME ─────────────────────────────────────────────────────────────
+function renderHome() {
+  const totalRooms=jobs.reduce((s,j)=>s+(j.rooms||[]).length,0);
+  const pipeline=jobs.reduce((s,j)=>s+jobTotal(j).total,0);
+  document.getElementById('s-total').textContent=jobs.length;
+  document.getElementById('s-rooms').textContent=totalRooms;
+  document.getElementById('s-pipeline').textContent=fmt(pipeline);
+  const c=document.getElementById('home-jobs');
+  if(!jobs.length){c.innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>No estimates yet</p><small>Tap + to start your first one</small></div>';return;}
+  c.innerHTML='';
+  jobs.forEach(j=>{
+    const t=jobTotal(j);
+    const d=document.createElement('div'); d.className='job-card'; d.onclick=()=>showJobDetail(j.id);
+    d.innerHTML=`
+      <div class="job-card-icon" style="background:var(--ink);color:#fff;font-size:22px">${j.rooms[0]?j.rooms[0].emoji:'🛁'}</div>
+      <div class="job-card-body">
+        <div class="job-card-name">${j.client}</div>
+        <div class="job-card-meta">${j.address||j.date}</div>
+      </div>
+      <div class="job-card-right">
+        <div class="job-card-total">${fmt(t.total)}</div>
+        <div class="job-card-rooms">${j.rooms.length} room${j.rooms.length!==1?'s':''}</div>
+      </div>`;
+    c.appendChild(d);
+  });
+}
+
+// ─── RENDER ESTIMATE ─────────────────────────────────────────────────────────
+function renderEstimate() {
+  const job=getJob(); if(!job){ navTo('home'); return; }
+  document.getElementById('est-client-name').textContent=job.client;
+  document.getElementById('est-address').textContent=job.address||job.date;
+  // Room tabs
+  const tabs=document.getElementById('room-tabs'); tabs.innerHTML='';
+  job.rooms.forEach(r=>{
+    const b=document.createElement('button');
+    b.className='room-tab'+(r.id===activeRoomId?' active':'');
+    b.textContent=r.emoji+' '+r.name;
+    b.onclick=()=>{activeRoomId=r.id; renderEstimate();};
+    tabs.appendChild(b);
+  });
+  renderRoomContent(activeRoomId);
+}
+
+function renderRoomContent(roomId) {
+  const room=getRoom(roomId);
+  const c=document.getElementById('room-content');
+  if(!room){c.innerHTML='<div class="empty"><div class="empty-icon">🛁</div><p>No rooms added yet</p><small>Tap "+ Room" to add a bathroom</small></div>';return;}
+
+  const L=room.L||2.5, W=room.W||1.8, H=room.H||2.4;
+  const floor=(L*W).toFixed(1), walls=(2*(L+W)*H).toFixed(1);
+  const rt=roomTotal(room);
+  const job=getJob(); const t=jobTotal(job);
+
+  let html=`
+    <div class="room-summary">
+      <div class="rs-label">Room total</div>
+      <div class="rs-total">${fmt(rt)}</div>
+      <div class="rs-grid">
+        <div class="rs-item"><div class="rs-item-label">Floor</div><div class="rs-item-val">${floor}m²</div></div>
+        <div class="rs-item"><div class="rs-item-label">Walls</div><div class="rs-item-val">${walls}m²</div></div>
+        <div class="rs-item"><div class="rs-item-label">L×W×H</div><div class="rs-item-val" style="font-size:11px">${L}×${W}×${H}</div></div>
+      </div>
+    </div>
+    <div class="mode-toggle">
+      <button class="mode-btn${room.mode==='quick'?' active':''}" onclick="setMode('${room.id}','quick')">⚡ Quick</button>
+      <button class="mode-btn${room.mode==='detailed'?' active':''}" onclick="setMode('${room.id}','detailed')">📋 Detailed</button>
+    </div>`;
+
+  if(room.mode==='quick') {
+    html += renderQuickMode(room);
+  } else {
+    html += renderDetailedMode(room);
+  }
+
+  // Photos section
+  html += `
+    <div class="section-label" style="margin-top:20px">Site photos</div>
+    <div class="photo-grid" id="photo-grid-${room.id}">
+      ${(room.photos||[]).map((p,i)=>`
+        <div class="photo-thumb" onclick="openPhotoNote('${room.id}',${i})">
+          <img src="${p.data}" alt="Site photo ${i+1}">
+          ${p.note?`<div class="photo-note">${p.note}</div>`:''}
+          <button class="photo-del" onclick="event.stopPropagation();deletePhoto('${room.id}',${i})"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        </div>`).join('')}
+      <button class="photo-add" onclick="triggerPhoto('${room.id}')">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Add photo
+      </button>
+    </div>`;
+
+  // Room actions
+  html += `
+    <div class="btn-row" style="margin-top:16px">
+      <button class="btn-sm" style="color:#c0392b;border-color:#ffd5d0" onclick="deleteRoom('${room.id}')">Remove room</button>
+    </div>`;
+
+  // Project total
+  html += `
+    <div class="section-label" style="margin-top:20px">Project total</div>
+    <div class="total-bar">
+      <div class="total-bar-label">All rooms · inc. GST</div>
+      <div class="total-bar-val">${fmt(t.total)}</div>
+      <div class="total-breakdown">
+        ${job.rooms.map(r=>`<div class="tb-row"><span>${r.emoji} ${r.name}</span><span>${fmt(roomTotal(r))}</span></div>`).join('')}
+        <div class="tb-row"><span>Contingency (${company.cont||10}%)</span><span>${fmt(t.cont)}</span></div>
+        <div class="tb-row"><span>GST (${company.gst||10}%)</span><span>${fmt(t.gst)}</span></div>
+        <div class="tb-row bold"><span>Total estimate</span><span>${fmt(t.total)}</span></div>
+      </div>
+    </div>
+    <div style="height:20px"></div>`;
+
+  c.innerHTML=html;
+}
+
+function renderQuickMode(room) {
+  let html='';
+  quickRates.forEach((qr,i)=>{
+    const val=room.quick&&room.quick[i]!=null?room.quick[i]:Math.round((qr.min+qr.max)/2);
+    html+=`
+      <div class="quick-category">
+        <div class="qc-header" onclick="toggleQC('qc-${room.id}-${i}')">
+          <div class="qc-title">${qr.name}</div>
+          <div class="qc-total" id="qc-val-${room.id}-${i}">${fmt(room.quick&&room.quick[i]!=null?room.quick[i]:0)}</div>
+        </div>
+        <div class="qc-body" id="qc-${room.id}-${i}">
+          <div class="quick-item">
+            <div class="qi-row">
+              <span class="qi-label">Estimate</span>
+              <span class="qi-val" id="qi-display-${room.id}-${i}">${fmt(room.quick&&room.quick[i]!=null?room.quick[i]:Math.round((qr.min+qr.max)/2))}</span>
+            </div>
+            <input type="range" min="${qr.min}" max="${qr.max}" step="50"
+              value="${room.quick&&room.quick[i]!=null?room.quick[i]:Math.round((qr.min+qr.max)/2)}"
+              oninput="updateQuick('${room.id}',${i},this.value)">
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:3px;font-family:'JetBrains Mono',monospace">
+              <span>${fmt(qr.min)}</span><span>${fmt(qr.max)}</span>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  });
+  // Rate chips for quick add
+  html+=`<div class="section-label" style="margin-top:14px">Quick add from rates</div><div style="flex-wrap:wrap;display:flex">`;
+  labourRates.forEach(r=>{
+    html+=`<div class="rate-chip" onclick="quickAddLine('${room.id}','${r.name} (${r.unit})',1,${r.rate})"><span>${r.name}</span><span class="rc-price">${fmt(r.rate)}/${r.unit}</span></div>`;
+  });
+  html+='</div>';
+  return html;
+}
+
+function renderDetailedMode(room) {
+  let html='<div class="section-label">Line items</div>';
+  (room.lines||[]).forEach((l,i)=>{
+    html+=`
+      <div class="line-item">
+        <div class="li-top">
+          <input type="text" value="${l.name}" placeholder="Description" style="font-size:14px;padding:8px 10px" oninput="updateLine('${room.id}',${i},'name',this.value)">
+          <button class="del-btn" onclick="deleteLine('${room.id}',${i})"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        </div>
+        <div class="li-bot">
+          <div class="field" style="margin:0"><label>Qty</label><input type="number" value="${l.qty}" min="0" step="any" style="font-size:14px;padding:8px 10px" oninput="updateLine('${room.id}',${i},'qty',parseFloat(this.value)||0)"></div>
+          <div class="field" style="margin:0"><label>Rate (AUD)</label><div class="pfx-wrap"><span class="pfx">$</span><input type="number" value="${l.rate}" min="0" step="any" style="font-size:14px;padding:8px 10px 8px 26px" oninput="updateLine('${room.id}',${i},'rate',parseFloat(this.value)||0)"></div></div>
+          <div class="li-total">${fmt(l.qty*l.rate)}</div>
+        </div>
+      </div>`;
+  });
+  html+=`
+    <div class="btn-row">
+      <button class="add-line-btn" style="flex:1" onclick="addLine('${room.id}','Labour','',1,120)">+ LABOUR</button>
+      <button class="add-line-btn" style="flex:1" onclick="addLine('${room.id}','Material','',1,200)">+ MATERIAL</button>
+    </div>
+    <button class="add-line-btn" onclick="addLine('${room.id}','Other','',1,300)">+ OTHER</button>
+    <div class="section-label" style="margin-top:14px">Add from rate library</div>
+    <div style="flex-wrap:wrap;display:flex">`;
+  labourRates.forEach(r=>{
+    html+=`<div class="rate-chip" onclick="addLine('${room.id}','Labour','${r.name}',1,${r.rate})"><span>${r.name}</span><span class="rc-price">${fmt(r.rate)}/${r.unit}</span></div>`;
+  });
+  materialRates.forEach(r=>{
+    html+=`<div class="rate-chip" onclick="addLine('${room.id}','Material','${r.name}',1,${r.rate})"><span>${r.name}</span><span class="rc-price">${fmt(r.rate)}/${r.unit}</span></div>`;
+  });
+  html+='</div>';
+  return html;
+}
+
+// ─── LINE ITEM OPERATIONS ─────────────────────────────────────────────────────
+function addLine(roomId,cat,name,qty,rate) {
+  const r=getRoom(roomId); if(!r) return;
+  r.lines.push({cat,name,qty,rate});
+  persist(); renderRoomContent(roomId);
+}
+function updateLine(roomId,idx,field,val) {
+  const r=getRoom(roomId); if(!r||!r.lines[idx]) return;
+  r.lines[idx][field]=val; persist();
+  // Update total display inline if possible
+  const t=r.lines[idx].qty*r.lines[idx].rate;
+  const els=document.querySelectorAll('.li-total');
+  if(els[idx]) els[idx].textContent=fmt(t);
+  refreshRoomSummary(roomId);
+}
+function deleteLine(roomId,idx) {
+  const r=getRoom(roomId); if(!r) return;
+  r.lines.splice(idx,1); persist(); renderRoomContent(roomId);
+}
+function quickAddLine(roomId,name,qty,rate) {
+  const r=getRoom(roomId); if(!r) return;
+  r.lines.push({cat:'Labour',name,qty,rate});
+  r.mode='detailed'; persist(); renderRoomContent(roomId);
+}
+
+// ─── QUICK MODE ───────────────────────────────────────────────────────────────
+function toggleQC(id) {
+  const el=document.getElementById(id); if(!el) return;
+  el.classList.toggle('open');
+}
+function updateQuick(roomId,idx,val) {
+  const r=getRoom(roomId); if(!r) return;
+  if(!r.quick) r.quick=quickRates.map(()=>null);
+  r.quick[idx]=parseInt(val);
+  document.getElementById('qi-display-'+roomId+'-'+idx).textContent=fmt(r.quick[idx]);
+  document.getElementById('qc-val-'+roomId+'-'+idx).textContent=fmt(r.quick[idx]);
+  persist(); refreshRoomSummary(roomId);
+}
+function refreshRoomSummary(roomId) {
+  const room=getRoom(roomId); if(!room) return;
+  const rt=roomTotal(room);
+  const rsEl=document.querySelector('.rs-total');
+  if(rsEl) rsEl.textContent=fmt(rt);
+  const job=getJob(); const t=jobTotal(job);
+  const tbVal=document.querySelector('.total-bar-val');
+  if(tbVal) tbVal.textContent=fmt(t.total);
+  // Update project total breakdown
+  const rows=document.querySelectorAll('.tb-row');
+  if(rows.length) {
+    const allRooms=job.rooms;
+    allRooms.forEach((r,i)=>{ if(rows[i]) rows[i].querySelector('span:last-child').textContent=fmt(roomTotal(r)); });
+  }
+}
+
+// ─── PHOTOS ───────────────────────────────────────────────────────────────────
+function triggerPhoto(roomId) {
+  pendingPhotoRoomId=roomId;
+  document.getElementById('photo-input').click();
+}
+function handlePhotos(e) {
+  const files=Array.from(e.target.files); if(!files.length) return;
+  const room=getRoom(pendingPhotoRoomId); if(!room) return;
+  let loaded=0;
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      room.photos.push({data:ev.target.result,note:''});
+      loaded++;
+      if(loaded===files.length){ persist(); renderRoomContent(pendingPhotoRoomId); }
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value='';
+}
+function deletePhoto(roomId,idx) {
+  if(!confirm('Remove this photo?')) return;
+  const r=getRoom(roomId); if(!r) return;
+  r.photos.splice(idx,1); persist(); renderRoomContent(roomId);
+}
+function openPhotoNote(roomId,idx) {
+  pendingPhotoRoomId=roomId; pendingPhotoNoteIdx=idx;
+  const r=getRoom(roomId); if(!r) return;
+  document.getElementById('photo-note-input').value=r.photos[idx]?r.photos[idx].note:'';
+  document.getElementById('overlay-photonote').classList.add('open');
+}
+function savePhotoNote() {
+  const r=getRoom(pendingPhotoRoomId); if(!r||pendingPhotoNoteIdx==null) return;
+  r.photos[pendingPhotoNoteIdx].note=document.getElementById('photo-note-input').value;
+  persist(); flash('Note saved');
+  closeOverlay('overlay-photonote');
+  renderRoomContent(pendingPhotoRoomId);
+}
+
+// ─── RATES ───────────────────────────────────────────────────────────────────
+function renderRates() {
+  const lc=document.getElementById('labour-rates-list'); lc.innerHTML='';
+  labourRates.forEach((r,i)=>{
+    const d=document.createElement('div'); d.className='line-item'; d.style.marginBottom='8px';
+    d.innerHTML=`<div class="li-top"><input type="text" value="${r.name}" style="font-size:14px;padding:8px 10px" oninput="labourRates[${i}].name=this.value;persist()"><button class="del-btn" onclick="labourRates.splice(${i},1);persist();renderRates()"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+      <div class="row2"><div class="field" style="margin:0"><label>Unit</label><input type="text" value="${r.unit}" style="font-size:14px;padding:8px 10px" oninput="labourRates[${i}].unit=this.value;persist()"></div><div class="field" style="margin:0"><label>Rate (AUD)</label><div class="pfx-wrap"><span class="pfx">$</span><input type="number" value="${r.rate}" style="font-size:14px;padding:8px 10px 8px 26px" oninput="labourRates[${i}].rate=parseFloat(this.value)||0;persist()"></div></div></div>`;
+    lc.appendChild(d);
+  });
+  const mc=document.getElementById('material-rates-list'); mc.innerHTML='';
+  materialRates.forEach((r,i)=>{
+    const d=document.createElement('div'); d.className='line-item'; d.style.marginBottom='8px';
+    d.innerHTML=`<div class="li-top"><input type="text" value="${r.name}" style="font-size:14px;padding:8px 10px" oninput="materialRates[${i}].name=this.value;persist()"><button class="del-btn" onclick="materialRates.splice(${i},1);persist();renderRates()"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+      <div class="row2"><div class="field" style="margin:0"><label>Unit</label><input type="text" value="${r.unit}" style="font-size:14px;padding:8px 10px" oninput="materialRates[${i}].unit=this.value;persist()"></div><div class="field" style="margin:0"><label>Rate (AUD)</label><div class="pfx-wrap"><span class="pfx">$</span><input type="number" value="${r.rate}" style="font-size:14px;padding:8px 10px 8px 26px" oninput="materialRates[${i}].rate=parseFloat(this.value)||0;persist()"></div></div></div>`;
+    mc.appendChild(d);
+  });
+  const qc=document.getElementById('quick-rates-list'); qc.innerHTML='';
+  quickRates.forEach((r,i)=>{
+    const d=document.createElement('div'); d.className='line-item'; d.style.marginBottom='8px';
+    d.innerHTML=`<div class="li-top"><input type="text" value="${r.name}" style="font-size:14px;padding:8px 10px" oninput="quickRates[${i}].name=this.value;persist()"><button class="del-btn" onclick="quickRates.splice(${i},1);persist();renderRates()"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+      <div class="row2"><div class="field" style="margin:0"><label>Min (AUD)</label><div class="pfx-wrap"><span class="pfx">$</span><input type="number" value="${r.min}" style="font-size:14px;padding:8px 10px 8px 26px" oninput="quickRates[${i}].min=parseFloat(this.value)||0;persist()"></div></div><div class="field" style="margin:0"><label>Max (AUD)</label><div class="pfx-wrap"><span class="pfx">$</span><input type="number" value="${r.max}" style="font-size:14px;padding:8px 10px 8px 26px" oninput="quickRates[${i}].max=parseFloat(this.value)||0;persist()"></div></div></div>`;
+    qc.appendChild(d);
+  });
+}
+function addRate(type,name,unit,rate) {
+  if(type==='labour') labourRates.push({name,unit,rate});
+  else materialRates.push({name,unit,rate});
+  persist(); renderRates();
+}
+function addQuickRate(name,min,max) {
+  quickRates.push({name,min,max}); persist(); renderRates();
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function saveSettings() {
+  company.name=document.getElementById('co-name').value;
+  company.abn=document.getElementById('co-abn').value;
+  company.phone=document.getElementById('co-phone').value;
+  company.email=document.getElementById('co-email').value;
+  company.address=document.getElementById('co-address').value;
+  company.lic=document.getElementById('co-lic').value;
+  company.gst=parseInt(document.getElementById('co-gst').value)||10;
+  company.cont=parseInt(document.getElementById('co-cont').value)||10;
+  persist(); flash('Settings saved');
+  document.getElementById('topbar-sub').textContent=company.name||'Brisbane Bathroom Renovations';
+}
+function loadSettings() {
+  document.getElementById('co-name').value=company.name||'';
+  document.getElementById('co-abn').value=company.abn||'';
+  document.getElementById('co-phone').value=company.phone||'';
+  document.getElementById('co-email').value=company.email||'';
+  document.getElementById('co-address').value=company.address||'';
+  document.getElementById('co-lic').value=company.lic||'';
+  document.getElementById('co-gst').value=company.gst||10;
+  document.getElementById('co-cont').value=company.cont||10;
+}
+function clearAllData() {
+  if(!confirm('Clear ALL data? This cannot be undone.')) return;
+  localStorage.clear(); location.reload();
+}
+
+// ─── PWA ─────────────────────────────────────────────────────────────────────
+const manifest={name:"Reno Estimator",short_name:"Estimator",display:"standalone",background_color:"#1a1a2e",theme_color:"#1a1a2e",orientation:"portrait",start_url:".",icons:[{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%231a1a2e'/><text x='96' y='130' font-size='100' text-anchor='middle'>🛁</text></svg>"),sizes:"192x192",type:"image/svg+xml"}]};
+const mb=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+document.getElementById('pwa-manifest').href=URL.createObjectURL(mb);
+
+if('serviceWorker' in navigator){
+  const sw=`const C='re-v2';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.add(self.location.href))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match(e.request)))));`;
+  const sb=new Blob([sw],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(sb)).catch(()=>{});
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+hydrate();
+renderHome();
+document.getElementById('topbar-sub').textContent=company.name||'Brisbane Bathroom Renovations';
+</script>
+</body>
+</html>
